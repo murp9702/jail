@@ -38,17 +38,110 @@ var User = mongoose.model('user', mongoose.Schema({
     role     : { type: String, required: true }
 }));
 
-/*
-app.get('/example', protected, function(req, res){ res.send('example'); });
 
-function protected(req, res, next) {
-    if( req.session.user.role === 'someRole' ) {
-        // do something and call next()
-    } else {
-        // send down a forbidden response (status code 403)
-    }
+// app.get('/example', protected, function(req, res){ res.send('example'); });
+
+function wardenOffice(req, res, next) {
+    User.findOne({_id: req.session.uid}, function(err, user){
+        if (err) {
+            console.log('failed')
+            res.send({failure:'failure'})
+        }
+        else if (!user) {
+            res.send({failure:'failure'})
+        } else {
+            if(user.role === 'warden') {
+                // do something and call next()
+                next()
+            } else {
+                res.send(403)
+                // send down a forbidden response (status code 403)
+            }
+        }
+    })
 }
-*/
+
+function lobbyAndLounge(req, res, next) {
+    User.findOne({_id: req.session.uid}, function(err, user){
+        if (err) {
+            console.log('failed')
+            res.send({failure:'failure'})
+        }
+        else if (!user) {
+            res.send({failure:'failure'})
+        } else {
+            if(user.role !== 'prisoner') {
+                // do something and call next()d
+                next()
+            } else {
+                res.send(403)
+                // send down a forbidden response (status code 403)
+            }
+        }
+    })
+}
+
+function cafeteria(req, res, next) {
+    User.findOne({_id: req.session.uid}, function(err, user){
+        if (err) {
+            console.log('failed')
+            res.send({failure:'failure'})
+        }
+        else if (!user) {
+            res.send({failure:'failure'})
+        } else {
+            if(user.role !== 'visitor') {
+                // do something and call next()d
+                next()
+            } else {
+                res.send(403)
+                // send down a forbidden response (status code 403)
+            }
+        }
+    })
+}
+
+function eCell(req, res, next) {
+    User.findOne({_id: req.session.uid}, function(err, user){
+        if (err) {
+            console.log('failed')
+            res.send({failure:'failure'})
+        }
+        else if (!user) {
+            res.send({failure:'failure'})
+        } else {
+            if(user.role === 'warden' || user.username === "eve" || user.role === "guard") {
+                // do something and call next()d
+                next()
+            } else {
+                res.send(403)
+                // send down a forbidden response (status code 403)
+            }
+        }
+    })
+}
+
+function mCell(req, res, next) {
+    User.findOne({_id: req.session.uid}, function(err, user){
+        if (err) {
+            console.log('failed')
+            res.send({failure:'failure'})
+        }
+        else if (!user) {
+            res.send({failure:'failure'})
+        } else {
+            if(user.role === 'warden' || user.username === "mallory" || user.role === "guard" ) {
+                // do something and call next()d
+                console.log(user.username)
+                next()
+            } else {
+                res.send(403)
+                // send down a forbidden response (status code 403)
+            }
+        }
+    })
+}
+
 
 app.get('/', function(req, res){
     res.sendFile('./html/login.html', {root:'./public'});
@@ -56,22 +149,22 @@ app.get('/', function(req, res){
 app.get('/jail', function(req, res, next){
     res.sendFile('./html/jail.html', {root:'./public'});
 });
-app.get('/lobby', function(req, res, next){
+app.get('/lobby', lobbyAndLounge, function(req, res, next){
     res.sendFile('./html/lobby.html', {root:'./public'});
 });
-app.get('/visitors-lounge', function(req, res, next){
+app.get('/visitors-lounge',lobbyAndLounge, function(req, res, next){
     res.sendFile('./html/visitors-lounge.html', {root:'./public'});
 });
-app.get('/cafeteria', function(req, res, next){
+app.get('/cafeteria', cafeteria, function(req, res, next){
     res.sendFile('./html/cafeteria.html', {root:'./public'});
 });
-app.get('/wardens-office', function(req, res, next){
+app.get('/wardens-office', wardenOffice, function(req, res, next){
     res.sendFile('./html/wardens-office.html', {root:'./public'});
 });
-app.get('/cell-e', function(req, res, next){
+app.get('/cell-e', eCell, function(req, res, next){
     res.sendFile('./html/cell-e.html', {root:'./public'});
 });
-app.get('/cell-m', function(req, res, next){
+app.get('/cell-m', mCell, function(req, res, next){
     res.sendFile('./html/cell-m.html', {root:'./public'});
 });
 
@@ -83,7 +176,7 @@ app.get('/me', function(req, res){
 
 app.post('/login', function(req, res) { // form post submission
     console.info('auth.login.payload:', req.body);
-    
+
     User.findOne({ username: req.body.username }, function(err, user) {
         if( err) {
             console.log('MongoDB error:', err);
@@ -111,7 +204,7 @@ app.post('/login', function(req, res) { // form post submission
             });
         }
     });
-});        
+});
 
 
 
